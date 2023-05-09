@@ -14,6 +14,14 @@ import tqdm
 
 import echonet
 
+# sometimes torch does not properly initialize cuDNN, this is meant to force the init
+def force_cudnn_initialization():
+    s = 32
+    dev = torch.device('cuda')
+    torch.nn.functional.conv2d(torch.zeros(s, s, s, s, device=dev), torch.zeros(s, s, s, s, device=dev))
+    torch.cuda.empty_cache()
+
+
 
 @click.command("video")
 @click.option("--data_dir", type=click.Path(exists=True, file_okay=False), default=None)
@@ -116,7 +124,11 @@ def run(
 
     # Set device for computations
     if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            force_cudnn_initialization()
+            device = torch.device('cuda')
+        else:
+            device = torch.device('cpu')
 
     # Set up model
     model = torchvision.models.video.__dict__[model_name](pretrained=pretrained)
