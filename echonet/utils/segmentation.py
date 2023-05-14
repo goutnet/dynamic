@@ -122,7 +122,7 @@ def run(
             device = torch.device('cpu')
 
     # Set up model
-    model = torchvision.models.segmentation.__dict__[model_name](pretrained=pretrained, aux_loss=False)
+    model = torchvision.models.segmentation.__dict__[model_name](pretrained=pretrained, aux_loss=pretrained)
 
     model.classifier[-1] = torch.nn.Conv2d(model.classifier[-1].in_channels, 1, kernel_size=model.classifier[-1].kernel_size)  # change number of outputs to 1
     if device.type == "cuda":
