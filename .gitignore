@@ -5,4 +5,5 @@ echonet.cfg
 .echonet.cfg
 *.pyc
 echonet.egg-info/
-*.pt
+*.avi
+EchoNetDynamic-Weights/
