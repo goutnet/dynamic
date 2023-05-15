@@ -285,6 +285,7 @@ def run(
 
         os.makedirs(os.path.join(output, "videos", 'side_by_side'), exist_ok=True)
         os.makedirs(os.path.join(output, "videos", 'overlaid'), exist_ok=True)
+        os.makedirs(os.path.join(output, "videos", 'mask'), exist_ok=True)
         os.makedirs(os.path.join(output, "size"), exist_ok=True)
         echonet.utils.latexify()
 
@@ -330,6 +331,12 @@ def run(
                         overlaid_video = overlaid_video.astype(np.uint8)
                         overlaid_video = overlaid_video.transpose(1, 0, 2, 3)
 
+                        # Create a mask alone:
+                        mask_video = (mask * 255).astype(np.uint8)
+                        mask_gray= mask_video.astype(np.uint8)
+
+                        mask_video = np.stack([mask_gray, mask_gray, mask_gray], axis=1)
+                        mask_video = mask_video.transpose(1, 0, 2, 3)
 
                         # Put two copies of the video side by side
                         video = np.concatenate((video, video), 3)
@@ -420,6 +427,7 @@ def run(
 
                         echonet.utils.savevideo(os.path.join(output, "videos", 'side_by_side', filename), video, 50)
                         echonet.utils.savevideo(os.path.join(output, "videos", 'overlaid', filename), overlaid_video, 50)
+                        echonet.utils.savevideo(os.path.join(output, "videos", 'mask', filename), mask_video, 50)
 
                         # Move to next video
                         start += offset
