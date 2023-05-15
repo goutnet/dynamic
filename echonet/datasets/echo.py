@@ -119,28 +119,31 @@ class Echo(torchvision.datasets.VisionDataset):
             self.frames = collections.defaultdict(list)
             self.trace = collections.defaultdict(_defaultdict_of_lists)
 
-            with open(os.path.join(self.root, "VolumeTracings.csv")) as f:
-                header = f.readline().strip().split(",")
-                assert header == ["FileName", "X1", "Y1", "X2", "Y2", "Frame"]
+            if self.split != 'EXTERNAL_DATA':
+                with open(os.path.join(self.root, "VolumeTracings.csv")) as f:
+                    header = f.readline().strip().split(",")
+                    assert header == ["FileName", "X1", "Y1", "X2", "Y2", "Frame"]
 
-                for line in f:
-                    filename, x1, y1, x2, y2, frame = line.strip().split(',')
-                    x1 = float(x1)
-                    y1 = float(y1)
-                    x2 = float(x2)
-                    y2 = float(y2)
-                    frame = int(frame)
-                    if frame not in self.trace[filename]:
-                        self.frames[filename].append(frame)
-                    self.trace[filename][frame].append((x1, y1, x2, y2))
+                    for line in f:
+                        filename, x1, y1, x2, y2, frame = line.strip().split(',')
+                        x1 = float(x1)
+                        y1 = float(y1)
+                        x2 = float(x2)
+                        y2 = float(y2)
+                        frame = int(frame)
+                        if frame not in self.trace[filename]:
+                            self.frames[filename].append(frame)
+                        self.trace[filename][frame].append((x1, y1, x2, y2))
+
             for filename in self.frames:
                 for frame in self.frames[filename]:
                     self.trace[filename][frame] = np.array(self.trace[filename][frame])
 
             # A small number of videos are missing traces; remove these videos
-            keep = [len(self.frames[f]) >= 2 for f in self.fnames]
-            self.fnames = [f for (f, k) in zip(self.fnames, keep) if k]
-            self.outcome = [f for (f, k) in zip(self.outcome, keep) if k]
+            if self.split != "EXTERNAL_DATA":
+                keep = [len(self.frames[f]) >= 2 for f in self.fnames]
+                self.fnames = [f for (f, k) in zip(self.fnames, keep) if k]
+                self.outcome = [f for (f, k) in zip(self.outcome, keep) if k]
 
     def __getitem__(self, index):
         # Find filename of video
@@ -234,7 +237,7 @@ class Echo(torchvision.datasets.VisionDataset):
                 mask[r, c] = 1
                 target.append(mask)
             else:
-                if self.split == "CLINICAL_TEST" or self.split == "EXTERNAL_TEST":
+                if self.split in ("CLINICAL_TEST", "EXTERNAL_TEST", "EXTERNAL_DATA"):
                     target.append(np.float32(0))
                 else:
                     target.append(np.float32(self.outcome[index][self.header.index(t)]))
