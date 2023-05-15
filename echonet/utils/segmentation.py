@@ -278,12 +278,13 @@ def run(
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=10, num_workers=num_workers, shuffle=False, pin_memory=False, collate_fn=_video_collate_fn)
 
     # Save videos with segmentation
-    if save_video and not all(os.path.isfile(os.path.join(output, "videos", f)) for f in dataloader.dataset.fnames):
+    if save_video and not all(os.path.isfile(os.path.join(output, "videos", 'side_by_side', f)) for f in dataloader.dataset.fnames):
         # Only run if missing videos
 
         model.eval()
 
-        os.makedirs(os.path.join(output, "videos"), exist_ok=True)
+        os.makedirs(os.path.join(output, "videos", 'side_by_side'), exist_ok=True)
+        os.makedirs(os.path.join(output, "videos", 'overlaid'), exist_ok=True)
         os.makedirs(os.path.join(output, "size"), exist_ok=True)
         echonet.utils.latexify()
 
@@ -316,6 +317,19 @@ def run(
                         # Get frames, channels, height, and width
                         f, c, h, w = video.shape  # pylint: disable=W0612
                         assert c == 3
+
+                        # create an overlaid video (split)
+                        overlaid_video = np.copy(video)
+
+                        # If a pixel is in the segmentation, saturate blue channel
+                        # Leave alone otherwise
+                        mask = (logit > 0)
+                        overlaid_video[:, 0, :, :] = np.maximum(255. * mask, video[:, 0, :, :])  # pylint: disable=E1111
+
+                        # Rearrange dimensions and save overlaid_video
+                        overlaid_video = overlaid_video.astype(np.uint8)
+                        overlaid_video = overlaid_video.transpose(1, 0, 2, 3)
+
 
                         # Put two copies of the video side by side
                         video = np.concatenate((video, video), 3)
@@ -403,7 +417,9 @@ def run(
                         # Rearrange dimensions and save
                         video = video.transpose(1, 0, 2, 3)
                         video = video.astype(np.uint8)
-                        echonet.utils.savevideo(os.path.join(output, "videos", filename), video, 50)
+
+                        echonet.utils.savevideo(os.path.join(output, "videos", 'side_by_side', filename), video, 50)
+                        echonet.utils.savevideo(os.path.join(output, "videos", 'overlaid', filename), overlaid_video, 50)
 
                         # Move to next video
                         start += offset
