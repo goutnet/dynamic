@@ -44,6 +44,7 @@ def force_cudnn_initialization():
 @click.option("--device", type=str, default=None)
 @click.option("--seed", type=int, default=0)
 @click.option("--dont_train/--run_training", default=False)
+@click.option("--load_weights", type=click.Path(exists=True, dir_okay=False), default=None)
 def run(
     data_dir=None,
     output=None,
@@ -64,6 +65,7 @@ def run(
     device=None,
     seed=0,
     dont_train=False,
+    load_weights=None,
 ):
     """Trains/tests segmentation model.
 
@@ -232,7 +234,8 @@ def run(
 
     # Load best weights
     if num_epochs != 0 or dont_train:
-        checkpoint = torch.load(os.path.join(output, "best.pt"))
+        bestpt = os.path.join(output, "best.pt") if load_weights is None else load_weights
+        checkpoint = torch.load(bestpt)
         model.load_state_dict(checkpoint['state_dict'])
         with open(os.path.join(output, "log.csv"), "a") as f:
             f.write("Best validation loss {} from epoch {}\n".format(checkpoint["loss"], checkpoint["epoch"]))
