@@ -286,6 +286,7 @@ def run(
         os.makedirs(os.path.join(output, "videos", 'side_by_side'), exist_ok=True)
         os.makedirs(os.path.join(output, "videos", 'overlaid'), exist_ok=True)
         os.makedirs(os.path.join(output, "videos", 'mask'), exist_ok=True)
+
         os.makedirs(os.path.join(output, "size"), exist_ok=True)
         echonet.utils.latexify()
 
@@ -429,6 +430,38 @@ def run(
                         echonet.utils.savevideo(os.path.join(output, "videos", 'overlaid', filename), overlaid_video, 50)
                         echonet.utils.savevideo(os.path.join(output, "videos", 'mask', filename), mask_video, 50)
 
+
+                        # Break down cycles only:
+
+                        # Split the videos into cycles and save them
+                        cycles = []
+                        systole_list = sorted(list(systole))
+                        for idx, s in enumerate(systole_list[:-1]):
+                            cycle_start = s
+                            cycle_end = systole_list[idx + 1]
+                            cycles.append((cycle_start, cycle_end))
+
+                        for cycle_num, (start_frame, end_frame) in enumerate(cycles, 1):
+                            cycle_folder = f"cycle_{cycle_num}"
+                            original_cycle = video[:, start_frame:end_frame, :w, :]
+                            overlaid_cycle = overlaid_video[:, start_frame:end_frame, :, :]
+                            mask_cycle = mask_video[:, start_frame:end_frame, :, :]
+
+                            reshaped_original = reshape_video(original_cycle)
+                            reshaped_overlaid = reshape_video(overlaid_cycle)
+                            reshaped_mask = reshape_video(mask_cycle)
+
+                            os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'original'), exist_ok=True)
+                            os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'side_by_side'), exist_ok=True)
+                            os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'mask'), exist_ok=True)
+
+                            echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'original', filename), reshaped_original, 50)
+                            echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'side_by_side', filename), reshaped_overlaid, 50)
+                            echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'mask', filename), reshaped_mask, 50)
+
+
+
+
                         # Move to next video
                         start += offset
 
@@ -571,3 +604,10 @@ def _video_collate_fn(x):
     target = zip(*target)
 
     return video, target, i
+
+
+def reshape_video(video, num_frames=32):
+    current_frames = video.shape[1]
+    indices = np.linspace(0, current_frames - 1, num=num_frames, dtype=int)
+    return video[:, indices, :, :]
+
