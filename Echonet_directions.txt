@@ -1,4 +1,5 @@
 Directions for use:
+try pip install .
 
 ----------------------------------------
 Weights go in in:
