@@ -436,27 +436,36 @@ def run(
                         # Split the videos into cycles and save them
                         cycles = []
                         systole_list = sorted(list(systole))
+
                         for idx, s in enumerate(systole_list[:-1]):
                             cycle_start = s
                             cycle_end = systole_list[idx + 1]
                             cycles.append((cycle_start, cycle_end))
 
+                        digits = len(f"{len(cycles)+1}")+1
+
                         for cycle_num, (start_frame, end_frame) in enumerate(cycles, 1):
-                            cycle_folder = f"cycle_{cycle_num}"
-                            original_cycle = video[:, start_frame:end_frame, :w, :]
+
+                            cycle_folder = f"{cycle_num:0{digits}}"
+
+                            original_cycle = video[:, start_frame:end_frame, :w, :h]
+                            compared_cycle = video[:, start_frame:end_frame, :w, :]
                             overlaid_cycle = overlaid_video[:, start_frame:end_frame, :, :]
                             mask_cycle = mask_video[:, start_frame:end_frame, :, :]
 
-                            reshaped_original = reshape_video(original_cycle)
+                            reshaped_original= reshape_video(original_cycle)
+                            reshaped_compared = reshape_video(compared_cycle)
                             reshaped_overlaid = reshape_video(overlaid_cycle)
                             reshaped_mask = reshape_video(mask_cycle)
 
+                            os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'overlaid'), exist_ok=True)
                             os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'original'), exist_ok=True)
                             os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'side_by_side'), exist_ok=True)
                             os.makedirs(os.path.join(output, "videos", "cycles", cycle_folder, 'mask'), exist_ok=True)
 
                             echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'original', filename), reshaped_original, 50)
-                            echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'side_by_side', filename), reshaped_overlaid, 50)
+                            echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'overlaid', filename), reshaped_overlaid, 50)
+                            echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'side_by_side', filename), reshaped_compared, 50)
                             echonet.utils.savevideo(os.path.join(output, "videos", "cycles", cycle_folder, 'mask', filename), reshaped_mask, 50)
 
 
