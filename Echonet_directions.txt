@@ -1,0 +1,21 @@
+Directions for use:
+
+----------------------------------------
+Weights go in in:
+..\echonet\dynamic\weights
+
+----------------------------------------
+Videos go in: 
+..\echonet\dynamic\a4c-video-dir\Videos
+
+---------------------------------------
+FileList.csv goes in:
+..\echonet\dynamic\a4c-video-dir\
+Should include columns for:
+"FileName", "EF", "ESV", "EDV", "FrameHeight", "FrameWidth", "FPS", "NumberOfFrames", "Split"
+** EF, ESV, EDV probably not required
+    
+
+---------------------------------------
+Command to run:
+echonet segmentation --save_video --dont_train --load_weights weights/deeplabv3_resnet50_random_best.pt

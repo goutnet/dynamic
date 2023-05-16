@@ -5,3 +5,6 @@ echonet.cfg
 .echonet.cfg
 *.pyc
 echonet.egg-info/
+*.avi
+*.pt
+a4c-video-dir/
