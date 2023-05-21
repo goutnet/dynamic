@@ -6,8 +6,8 @@ import cv2
 
 # Function to generate a random filename
 def generate_random_filename():
-    random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
-    return f"0X{random_chars}"
+    random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+    return f"0X{random_chars}ATHL"
 
 # Function to get video file information
 def get_video_info(file_path):
